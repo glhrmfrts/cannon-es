@@ -687,7 +687,7 @@ class Vec3 {
   }
   /**
    * Normalize the vector. Note that this changes the values in the vector.
-    * @return Returns the norm of the vector
+     * @return Returns the norm of the vector
    */
 
 
@@ -9689,7 +9689,7 @@ class Trimesh extends Shape {
         const n = this.vertices.length / 3,
             verts = this.vertices;
         const minx,miny,minz,maxx,maxy,maxz;
-         const v = tempWorldVertex;
+          const v = tempWorldVertex;
         for(let i=0; i<n; i++){
             this.getVertex(i, v);
             quat.vmult(v, v);
@@ -9699,12 +9699,12 @@ class Trimesh extends Shape {
             } else if(v.x > maxx || maxx===undefined){
                 maxx = v.x;
             }
-             if (v.y < miny || miny===undefined){
+              if (v.y < miny || miny===undefined){
                 miny = v.y;
             } else if(v.y > maxy || maxy===undefined){
                 maxy = v.y;
             }
-             if (v.z < minz || minz===undefined){
+              if (v.z < minz || minz===undefined){
                 minz = v.z;
             } else if(v.z > maxz || maxz===undefined){
                 maxz = v.z;
@@ -10279,7 +10279,8 @@ const COLLISION_TYPES = {
   heightfieldCylinder: Shape.types.HEIGHTFIELD | Shape.types.CYLINDER,
   particleCylinder: Shape.types.PARTICLE | Shape.types.CYLINDER,
   sphereTrimesh: Shape.types.SPHERE | Shape.types.TRIMESH,
-  planeTrimesh: Shape.types.PLANE | Shape.types.TRIMESH
+  planeTrimesh: Shape.types.PLANE | Shape.types.TRIMESH,
+  convexTrimesh: Shape.types.CONVEXPOLYHEDRON | Shape.types.TRIMESH
 };
 
 /**
@@ -10394,10 +10395,11 @@ class Narrowphase {
 
   get [COLLISION_TYPES.planeTrimesh]() {
     return this.planeTrimesh;
-  } // get [COLLISION_TYPES.convexTrimesh]() {
-  //   return this.convexTrimesh
-  // }
+  }
 
+  get [COLLISION_TYPES.convexTrimesh]() {
+    return this.convexTrimesh;
+  }
 
   constructor(world) {
     this.contactPointPool = [];
@@ -11734,65 +11736,78 @@ class Narrowphase {
         this.createFrictionEquationsFromContact(r, this.frictionResult);
       }
     }
-  } // convexTrimesh(
-  //   si: ConvexPolyhedron, sj: Trimesh, xi: Vec3, xj: Vec3, qi: Quaternion, qj: Quaternion,
-  //   bi: Body, bj: Body, rsi?: Shape | null, rsj?: Shape | null,
-  //   faceListA?: number[] | null, faceListB?: number[] | null,
-  // ) {
-  //   const sepAxis = convexConvex_sepAxis;
-  //   if(xi.distanceTo(xj) > si.boundingSphereRadius + sj.boundingSphereRadius){
-  //       return;
-  //   }
-  //   // Construct a temp hull for each triangle
-  //   const hullB = new ConvexPolyhedron();
-  //   hullB.faces = [[0,1,2]];
-  //   const va = new Vec3();
-  //   const vb = new Vec3();
-  //   const vc = new Vec3();
-  //   hullB.vertices = [
-  //       va,
-  //       vb,
-  //       vc
-  //   ];
-  //   for (let i = 0; i < sj.indices.length / 3; i++) {
-  //       const triangleNormal = new Vec3();
-  //       sj.getNormal(i, triangleNormal);
-  //       hullB.faceNormals = [triangleNormal];
-  //       sj.getTriangleVertices(i, va, vb, vc);
-  //       let d = si.testSepAxis(triangleNormal, hullB, xi, qi, xj, qj);
-  //       if(!d){
-  //           triangleNormal.scale(-1, triangleNormal);
-  //           d = si.testSepAxis(triangleNormal, hullB, xi, qi, xj, qj);
-  //           if(!d){
-  //               continue;
-  //           }
-  //       }
-  //       const res: ConvexPolyhedronContactPoint[] = [];
-  //       const q = convexConvex_q;
-  //       si.clipAgainstHull(xi,qi,hullB,xj,qj,triangleNormal,-100,100,res);
-  //       for(let j = 0; j !== res.length; j++){
-  //           const r = this.createContactEquation(bi,bj,si,sj,rsi,rsj),
-  //               ri = r.ri,
-  //               rj = r.rj;
-  //           r.ni.copy(triangleNormal);
-  //           r.ni.negate(r.ni);
-  //           res[j].normal.negate(q);
-  //           q.mult(res[j].depth, q);
-  //           res[j].point.vadd(q, ri);
-  //           rj.copy(res[j].point);
-  //           // Contact points are in world coordinates. Transform back to relative
-  //           ri.vsub(xi,ri);
-  //           rj.vsub(xj,rj);
-  //           // Make relative to bodies
-  //           ri.vadd(xi, ri);
-  //           ri.vsub(bi.position, ri);
-  //           rj.vadd(xj, rj);
-  //           rj.vsub(bj.position, rj);
-  //           result.push(r);
-  //       }
-  //   }
-  // }
+  }
 
+  convexTrimesh(shapeCvP, shapeTri, xCvP, xTri, qCvP, qTri, bodyCvP, bodyTri, rshapeCvP, rshapeTri, justTest) {
+    if (xCvP.distanceTo(xTri) > shapeCvP.boundingSphereRadius + shapeTri.boundingSphereRadius) {
+      return;
+    } // Construct a temp hull for each triangle
+
+
+    const va = new Vec3();
+    const vb = new Vec3();
+    const vc = new Vec3();
+    const hullB = new ConvexPolyhedron({
+      vertices: [va, vb, vc],
+      faces: [[0, 1, 2]]
+    });
+
+    for (let i = 0; i < shapeTri.indices.length / 3; i++) {
+      const triangleNormal = new Vec3();
+      shapeTri.getNormal(i, triangleNormal);
+      hullB.faceNormals = [triangleNormal];
+      shapeTri.getTriangleVertices(i, va, vb, vc);
+      let depth = shapeCvP.testSepAxis(triangleNormal, hullB, xCvP, qCvP, xTri, qTri);
+
+      if (!depth) {
+        triangleNormal.scale(-1, triangleNormal);
+        depth = shapeCvP.testSepAxis(triangleNormal, hullB, xCvP, qCvP, xTri, qTri);
+
+        if (!depth) {
+          continue;
+        }
+      }
+
+      const res = [];
+      const q = convexConvex_q;
+      shapeCvP.clipAgainstHull(xCvP, qCvP, hullB, xTri, qTri, triangleNormal, -100, 100, res);
+      let numContacts = 0;
+
+      for (let j = 0; j !== res.length; j++) {
+        if (justTest) {
+          return true;
+        }
+
+        const r = this.createContactEquation(bodyCvP, bodyTri, shapeCvP, shapeTri, rshapeCvP, rshapeTri);
+        const ri = r.ri;
+        const rj = r.rj;
+        r.ni.copy(triangleNormal);
+        r.ni.negate(r.ni);
+        res[j].normal.negate(q);
+        q.scale(res[j].depth, q);
+        res[j].point.vadd(q, ri);
+        rj.copy(res[j].point); // Contact points are in world coordinates. Transform back to relative
+
+        ri.vsub(xCvP, ri);
+        rj.vsub(xTri, rj); // Make relative to bodies
+
+        ri.vadd(xCvP, ri);
+        ri.vsub(bodyCvP.position, ri);
+        rj.vadd(xTri, rj);
+        rj.vsub(bodyTri.position, rj);
+        this.result.push(r);
+        numContacts++;
+
+        if (!this.enableFrictionReduction) {
+          this.createFrictionEquationsFromContact(r, this.frictionResult);
+        }
+      }
+
+      if (this.enableFrictionReduction && numContacts) {
+        this.createFrictionFromAverage(numContacts);
+      }
+    }
+  }
 
 }
 const averageNormal = new Vec3();
@@ -12119,7 +12134,7 @@ class World extends EventTarget {
    */
 
   /**
-   * Gravity to use when approximating the friction max force (mu*mass*gravity).
+   * Gravity to use when approximating the friction max force (mu \* mass \* gravity).
    * If undefined, global gravity will be used.
    * Use to enable friction in a World with a null gravity vector (no gravity).
    */
