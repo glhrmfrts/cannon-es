@@ -51,6 +51,7 @@ export const COLLISION_TYPES = {
   sphereTrimesh: (Shape.types.SPHERE | Shape.types.TRIMESH) as 257,
   planeTrimesh: (Shape.types.PLANE | Shape.types.TRIMESH) as 258,
   convexTrimesh: (Shape.types.CONVEXPOLYHEDRON | Shape.types.TRIMESH) as 259,
+  boxTrimesh: (Shape.types.BOX | Shape.types.TRIMESH) as 260,
 }
 
 export type CollisionType = typeof COLLISION_TYPES[keyof typeof COLLISION_TYPES]
@@ -154,6 +155,9 @@ export class Narrowphase {
   }
   get [COLLISION_TYPES.convexTrimesh]() {
     return this.convexTrimesh
+  }
+  get [COLLISION_TYPES.boxTrimesh]() {
+    return this.boxTrimesh
   }
 
   constructor(world: World) {
@@ -1904,6 +1908,36 @@ export class Narrowphase {
         this.createFrictionEquationsFromContact(r, this.frictionResult)
       }
     }
+  }
+
+  boxTrimesh(
+    shapeBox: Box,
+    shapeTri: Trimesh,
+    boxPos: Vec3,
+    trimeshPos: Vec3,
+    boxQuat: Quaternion,
+    trimeshQuat: Quaternion,
+    boxBody: Body,
+    trimeshBody: Body,
+    rsi?: Shape | null,
+    rsj?: Shape | null,
+    justTest?: boolean
+  ): true | void {
+    shapeBox.convexPolyhedronRepresentation.material = shapeBox.material
+    shapeBox.convexPolyhedronRepresentation.collisionResponse = shapeBox.collisionResponse
+    return this.convexTrimesh(
+      shapeBox.convexPolyhedronRepresentation,
+      shapeTri,
+      boxPos,
+      trimeshPos,
+      boxQuat,
+      trimeshQuat,
+      boxBody,
+      trimeshBody,
+      rsi,
+      rsj,
+      justTest
+    )
   }
 
   convexTrimesh(

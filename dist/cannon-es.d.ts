@@ -652,6 +652,7 @@ declare module "world/Narrowphase" {
         sphereTrimesh: 257;
         planeTrimesh: 258;
         convexTrimesh: 259;
+        boxTrimesh: 260;
     };
     export type CollisionType = typeof COLLISION_TYPES[keyof typeof COLLISION_TYPES];
     export class Narrowphase {
@@ -689,6 +690,7 @@ declare module "world/Narrowphase" {
         get [COLLISION_TYPES.sphereTrimesh](): (sphereShape: Sphere, trimeshShape: Trimesh, spherePos: Vec3, trimeshPos: Vec3, sphereQuat: Quaternion, trimeshQuat: Quaternion, sphereBody: Body, trimeshBody: Body, rsi?: Shape | null | undefined, rsj?: Shape | null | undefined, justTest?: boolean | undefined) => true | void;
         get [COLLISION_TYPES.planeTrimesh](): (planeShape: Plane, trimeshShape: Trimesh, planePos: Vec3, trimeshPos: Vec3, planeQuat: Quaternion, trimeshQuat: Quaternion, planeBody: Body, trimeshBody: Body, rsi?: Shape | null | undefined, rsj?: Shape | null | undefined, justTest?: boolean | undefined) => true | void;
         get [COLLISION_TYPES.convexTrimesh](): (shapeCvP: ConvexPolyhedron, shapeTri: Trimesh, xCvP: Vec3, xTri: Vec3, qCvP: Quaternion, qTri: Quaternion, bodyCvP: Body, bodyTri: Body, rshapeCvP?: Shape | null | undefined, rshapeTri?: Shape | null | undefined, justTest?: boolean | undefined) => true | void;
+        get [COLLISION_TYPES.boxTrimesh](): (shapeBox: Box, shapeTri: Trimesh, boxPos: Vec3, trimeshPos: Vec3, boxQuat: Quaternion, trimeshQuat: Quaternion, boxBody: Body, trimeshBody: Body, rsi?: Shape | null | undefined, rsj?: Shape | null | undefined, justTest?: boolean | undefined) => true | void;
         constructor(world: World);
         createContactEquation(bi: Body, bj: Body, si: Shape, sj: Shape, overrideShapeA?: Shape | null, overrideShapeB?: Shape | null): ContactEquation;
         createFrictionEquationsFromContact(contactEquation: ContactEquation, outArray: FrictionEquation[]): boolean;
@@ -714,6 +716,7 @@ declare module "world/Narrowphase" {
         particleCylinder(si: Particle, sj: Cylinder, xi: Vec3, xj: Vec3, qi: Quaternion, qj: Quaternion, bi: Body, bj: Body, rsi?: Shape | null, rsj?: Shape | null, justTest?: boolean): true | void;
         sphereTrimesh(sphereShape: Sphere, trimeshShape: Trimesh, spherePos: Vec3, trimeshPos: Vec3, sphereQuat: Quaternion, trimeshQuat: Quaternion, sphereBody: Body, trimeshBody: Body, rsi?: Shape | null, rsj?: Shape | null, justTest?: boolean): true | void;
         planeTrimesh(planeShape: Plane, trimeshShape: Trimesh, planePos: Vec3, trimeshPos: Vec3, planeQuat: Quaternion, trimeshQuat: Quaternion, planeBody: Body, trimeshBody: Body, rsi?: Shape | null, rsj?: Shape | null, justTest?: boolean): true | void;
+        boxTrimesh(shapeBox: Box, shapeTri: Trimesh, boxPos: Vec3, trimeshPos: Vec3, boxQuat: Quaternion, trimeshQuat: Quaternion, boxBody: Body, trimeshBody: Body, rsi?: Shape | null, rsj?: Shape | null, justTest?: boolean): true | void;
         convexTrimesh(shapeCvP: ConvexPolyhedron, shapeTri: Trimesh, xCvP: Vec3, xTri: Vec3, qCvP: Quaternion, qTri: Quaternion, bodyCvP: Body, bodyTri: Body, rshapeCvP?: Shape | null, rshapeTri?: Shape | null, justTest?: boolean): true | void;
     }
 }

@@ -10276,7 +10276,8 @@ const COLLISION_TYPES = {
   particleCylinder: Shape.types.PARTICLE | Shape.types.CYLINDER,
   sphereTrimesh: Shape.types.SPHERE | Shape.types.TRIMESH,
   planeTrimesh: Shape.types.PLANE | Shape.types.TRIMESH,
-  convexTrimesh: Shape.types.CONVEXPOLYHEDRON | Shape.types.TRIMESH
+  convexTrimesh: Shape.types.CONVEXPOLYHEDRON | Shape.types.TRIMESH,
+  boxTrimesh: Shape.types.BOX | Shape.types.TRIMESH
 };
 
 /**
@@ -10395,6 +10396,10 @@ class Narrowphase {
 
   get [COLLISION_TYPES.convexTrimesh]() {
     return this.convexTrimesh;
+  }
+
+  get [COLLISION_TYPES.boxTrimesh]() {
+    return this.boxTrimesh;
   }
 
   constructor(world) {
@@ -11732,6 +11737,12 @@ class Narrowphase {
         this.createFrictionEquationsFromContact(r, this.frictionResult);
       }
     }
+  }
+
+  boxTrimesh(shapeBox, shapeTri, boxPos, trimeshPos, boxQuat, trimeshQuat, boxBody, trimeshBody, rsi, rsj, justTest) {
+    shapeBox.convexPolyhedronRepresentation.material = shapeBox.material;
+    shapeBox.convexPolyhedronRepresentation.collisionResponse = shapeBox.collisionResponse;
+    return this.convexTrimesh(shapeBox.convexPolyhedronRepresentation, shapeTri, boxPos, trimeshPos, boxQuat, trimeshQuat, boxBody, trimeshBody, rsi, rsj, justTest);
   }
 
   convexTrimesh(shapeCvP, shapeTri, xCvP, xTri, qCvP, qTri, bodyCvP, bodyTri, rshapeCvP, rshapeTri, justTest) {
